@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Your Website</title>
+    <title>Kyle Ketterer</title>
     <style>
       body {
         background-color: black;
@@ -33,6 +33,32 @@
         display: none;
         padding: 50px;
       }
+      #home-section {
+        display: block;
+      }
+      #blog-section {
+        display: none;
+      }
+      #blog-input {
+        width: 100%;
+      }
+      .blog-entry {
+        border: 1px solid #ccc;
+        padding: 10px;
+        margin-bottom: 10px;
+      }
+      .blog-title {
+        font-size: 20px;
+      }
+      .blog-date {
+        font-style: italic;
+      }
+      .delete-button {
+        background-color: red;
+        color: white;
+        border: none;
+        cursor: pointer;
+      }
     </style>
   </head>
   <body>
@@ -44,31 +70,112 @@
       <a onclick="showSection('portfolio')">Portfolio</a>
       <a onclick="showSection('blog')">Blog</a>
     </nav>
-    <section id="home">
-      <h2>Home Section</h2>
-      <p>This is the home section of your website.</p>
+    <section id="home-section">
+      <h2>About me</h2>
+      <p>I am cool</p>
     </section>
     <section id="portfolio">
       <h2>Portfolio Section</h2>
       <p>This is the portfolio section of your website.</p>
     </section>
-    <section id="blog">
+    <section id="blog-section">
       <h2>Blog Section</h2>
-      <p>This is the blog section of your website.</p>
+      <input type="text" id="blog-title" placeholder="Enter the title" />
+      <textarea id="blog-input" placeholder="Enter your blog post"></textarea>
+      <input type="file" id="blog-image" accept="image/*" />
+      <button onclick="addBlogPost()">Submit</button>
+      <div id="blog-posts"></div>
     </section>
 
     <script>
       function showSection(sectionId) {
-        // Hide all sections
         var sections = document.querySelectorAll("section");
         for (var i = 0; i < sections.length; i++) {
           sections[i].style.display = "none";
         }
-
-        // Show the selected section
-        var selectedSection = document.getElementById(sectionId);
+        var selectedSection = document.getElementById(sectionId + "-section");
         selectedSection.style.display = "block";
       }
+
+      function displayBlogPosts(posts) {
+        var blogPosts = document.getElementById("blog-posts");
+        blogPosts.innerHTML = "";
+
+        if (posts && posts.length > 0) {
+          posts.forEach(function (post, index) {
+            var postDiv = document.createElement("div");
+            postDiv.className = "blog-entry";
+            postDiv.innerHTML = `
+                <h3 class="blog-title">${post.title}</h3>
+                <p class="blog-date">${post.date}</p>
+                <p>${post.content}</p>
+                <img src="${post.image}" alt="Blog Image" />
+                <button class="delete-button" onclick="deleteBlogPost(${index})">Delete</button>
+              `;
+            blogPosts.appendChild(postDiv);
+          });
+        }
+      }
+
+      function addBlogPost() {
+        var blogTitleInput = document.getElementById("blog-title");
+        var blogInput = document.getElementById("blog-input");
+        var blogImageInput = document.getElementById("blog-image");
+        var currentDate = new Date();
+        var formattedDate = currentDate.toLocaleDateString();
+
+        var imageFile = blogImageInput.files[0]; // Get the selected image file
+
+        // Check if an image is selected
+        if (imageFile) {
+          // Upload the image to the server (you'll need server-side logic for this)
+          // After successful upload, you'll receive a URL for the uploaded image.
+
+          // For now, let's assume you receive a placeholder URL for the image.
+          var imageUrl = "https://example.com/path/to/uploaded/image.jpg";
+        } else {
+          // No image selected
+          var imageUrl = ""; // Set a default image URL or handle this case accordingly
+        }
+
+        function loadBlogPostsFromJSON() {
+          var storedPosts = localStorage.getItem("blogPosts");
+          return storedPosts ? JSON.parse(storedPosts) : null;
+        }
+
+        function saveBlogPostsToJSON(posts) {
+          localStorage.setItem("blogPosts", JSON.stringify(posts));
+        }
+
+        function deleteBlogPost(index) {
+          var existingPosts = loadBlogPostsFromJSON() || [];
+          existingPosts.splice(index, 1);
+          saveBlogPostsToJSON(existingPosts);
+          displayBlogPosts(existingPosts);
+        }
+
+        var newPost = {
+          title: blogTitleInput.value,
+          date: formattedDate,
+          content: blogInput.value,
+          image: imageUrl, // Use the received image URL here
+        };
+
+        var existingPosts = loadBlogPostsFromJSON() || [];
+        existingPosts.unshift(newPost);
+        saveBlogPostsToJSON(existingPosts);
+
+        blogTitleInput.value = "";
+        blogInput.value = "";
+        blogImageInput.value = "";
+
+        displayBlogPosts(existingPosts);
+      }
+
+      window.onload = function () {
+        var existingPosts = loadBlogPostsFromJSON();
+        displayBlogPosts(existingPosts);
+      };
     </script>
   </body>
 </html>
